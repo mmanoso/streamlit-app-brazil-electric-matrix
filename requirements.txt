@@ -3,4 +3,4 @@ numpy==2.1.1
 pandas==2.2.2
 plotly==5.22.0
 streamlit==1.37.1
-fiona=1.9.5
+fiona==1.9.5
