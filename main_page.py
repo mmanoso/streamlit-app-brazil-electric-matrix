@@ -22,10 +22,10 @@ geojson_file_path_state = r"https://github.com/mmanoso/Brazilian-electric-matrix
 dfGeoData = gpd.read_file(geojson_file_path_state)
 
 # obtain parameters for filtering data
-fuel_type = dfData["DscOrigemCombustivel"].unique()
-generator_type = dfData["SigTipoGeracao"].unique()
-status = dfData["DscFaseUsina"].unique()
-map_category = ["DscOrigemCombustivel", "SigTipoGeracao"]
+fuel_type = dfData["fuel_origin"].unique()
+generator_type = dfData["generator_type"].unique()
+status = dfData["status"].unique()
+map_category = ["fuel_origin", "generator_type"]
 # configure the sidebar
 with st.sidebar:
     # pages
@@ -66,24 +66,22 @@ st.plotly_chart(fig, use_container_width=True)
 c1, c2, c3 = st.columns(3)
 with c1:
     operative_electric_power = (
-        dfData.loc[dfData["DscFaseUsina"] == "Operação", "MdaPotenciaOutorgadaKw"].sum()
+        dfData.loc[dfData["status"] == "Operação", "electric_power_inst"].sum()
     ) / 1000
     st.metric(f"Total Installed Electric Power", f"{operative_electric_power:,.0f} MW")
 
 with c2:
     proj_electric_power = (
         dfData.loc[
-            dfData["DscFaseUsina"] == "Construção não iniciada",
-            "MdaPotenciaOutorgadaKw",
+            dfData["status"] == "Construção não iniciada",
+            "electric_power_inst",
         ].sum()
     ) / 1000
     st.metric(f"Total Projected Electric Power", f"{proj_electric_power:,.0f} MW")
 
 with c3:
     constr_electric_power = (
-        dfData.loc[
-            dfData["DscFaseUsina"] == "Construção", "MdaPotenciaOutorgadaKw"
-        ].sum()
+        dfData.loc[dfData["status"] == "Construção", "electric_power_inst"].sum()
     ) / 1000
     st.metric(
         f"Total in Construction Electric Power", f"{constr_electric_power:,.0f} MW"
