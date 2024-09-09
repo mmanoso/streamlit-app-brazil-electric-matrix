@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 # read procesed data
-csv_file_path = r"https://github.com/mmanoso/Brazilian-electric-matrix/blob/main/data/processed/transformed_data.pkl?raw=true"
+csv_file_path = r"https://github.com/mmanoso/Brazilian-electric-matrix/blob/main/data/processed/transformed_data_app.pkl?raw=true"
 dfData = pd.read_pickle(csv_file_path)
 
 # read geojson data
@@ -22,10 +22,10 @@ geojson_file_path_state = r"https://github.com/mmanoso/Brazilian-electric-matrix
 dfGeoData = gpd.read_file(geojson_file_path_state)
 
 # obtain parameters for filtering data
-fuel_type = dfData["DscOrigemCombustivel"].unique()
-generator_type = dfData["SigTipoGeracao"].unique()
-status = dfData["DscFaseUsina"].unique()
-map_category = ["DscOrigemCombustivel", "SigTipoGeracao"]
+fuel_type = dfData["fuel_origin"].unique()
+generator_type = dfData["generator_type"].unique()
+status = dfData["status"].unique()
+map_category = ["fuel_origin", "generator_type"]
 
 # configure the sidebar
 with st.sidebar:

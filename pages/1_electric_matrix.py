@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # read procesed data
-csv_file_path = r"https://github.com/mmanoso/Brazilian-electric-matrix/blob/main/data/processed/transformed_data.pkl?raw=true"
+csv_file_path = r"https://github.com/mmanoso/Brazilian-electric-matrix/blob/main/data/processed/transformed_data_app.pkl?raw=true"
 dfData = pd.read_pickle(csv_file_path)
 
 # # read geojson data
@@ -23,10 +23,10 @@ dfData = pd.read_pickle(csv_file_path)
 # dfGeoData = gpd.read_file(geojson_file_path_state)
 
 # obtain parameters for filtering data
-fuel_type = dfData["DscOrigemCombustivel"].unique()
-generator_type = dfData["SigTipoGeracao"].unique()
-status = dfData["DscFaseUsina"].unique()
-category_filter = ["DscOrigemCombustivel", "SigTipoGeracao"]
+fuel_type = dfData["fuel_origin"].unique()
+generator_type = dfData["generator_type"].unique()
+status = dfData["status"].unique()
+category_filter = ["fuel_origin", "generator_type"]
 
 # configure the sidebar
 with st.sidebar:
@@ -68,8 +68,8 @@ with c2:
 # display table
 st.subheader("Table for total Electric Power")
 display_table = (
-    dfData[dfData["DscFaseUsina"] == par_status]
-    .groupby(["DscOrigemCombustivel", "SigTipoGeracao", "DscFonteCombustivel"])
-    .agg({"MdaPotenciaOutorgadaKw": "sum"})
+    dfData[dfData["status"] == par_status]
+    .groupby(["fuel_origin", "generator_type", "fuel_type"])
+    .agg({"electric_power_inst": "sum"})
 ).reset_index()
 st.table(display_table)
