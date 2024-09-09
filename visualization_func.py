@@ -64,8 +64,8 @@ def choropleth_mapbox_ele_pow(df, geodf, status, colors_scale):
     )
 
     # get better color for limits of the range in the color map
-    key_min = np.percentile(df_sorted.MdaPotenciaOutorgadaKw, 5)
-    key_max = np.percentile(df_sorted.MdaPotenciaOutorgadaKw, 95)
+    key_min = np.percentile(df_sorted.electric_power_inst, 5)
+    key_max = np.percentile(df_sorted.electric_power_inst, 95)
 
     # get the center of brazil to display by default
     state_bounds = geojson_data_state.geometry.total_bounds
