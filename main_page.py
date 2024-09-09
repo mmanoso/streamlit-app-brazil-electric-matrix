@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 # read procesed data
-csv_file_path = r"https://github.com/mmanoso/Brazilian-electric-matrix/blob/main/data/processed/transformed_data.pkl?raw=true"
+csv_file_path = r"https://github.com/mmanoso/Brazilian-electric-matrix/blob/main/data/processed/transformed_data_app.pkl?raw=true"
 dfData = pd.read_pickle(csv_file_path)
 
 # read geojson data
