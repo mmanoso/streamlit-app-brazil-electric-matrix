@@ -22,11 +22,14 @@ dfData = pd.read_pickle(csv_file_path)
 # geojson_file_path_state = r"C:\Users\Mariano\Documents\aprendizaje-data-science\repositorio-brazilian-electric-matrix\Brazilian-electric-matrix\data\processed\all_states.geojson"
 # dfGeoData = gpd.read_file(geojson_file_path_state)
 
-# obtain parameters for filtering data
-fuel_type = dfData["fuel_origin"].unique()
+# obtain unique values for parameters for filtering data
+fuel_origin = dfData["fuel_origin"].unique()
+fuel_type = dfData["fuel_type"].unique()
+fuel_type_name = dfData["fuel_type_name"].unique()
 generator_type = dfData["generator_type"].unique()
+states = dfData["states"].unique()
 status = dfData["status"].unique()
-category_filter = ["fuel_origin", "generator_type"]
+category_filter = ["fuel_origin", "fuel_type", "fuel_type_name", "generator_type"]
 
 # configure the sidebar
 with st.sidebar:
