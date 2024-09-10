@@ -36,3 +36,29 @@ def apply_filters_to_df(
 
     # return the filtered dataframe
     return df_filtered
+
+
+# define groupby function for graphs
+def groupby_func_to_df(df, category):
+    """
+    Function to groupby acording to a category incerted as input. The category will be graph vs the
+     sum of electric power inst.
+
+    df: dataframe to groupby
+    category: header of the column or list of header of columns to be group by.
+
+    return a gropued dataframe
+    """
+
+    # direct dataframe
+    df_grouped = df.copy()
+
+    # apply groupby function
+    df_grouped = (
+        df_grouped.groupby(category)
+        .agg({"electric_power_inst": "sum", "electric_power_decl": "sum"})
+        .reset_index()
+    )
+
+    # return the df
+    return df_grouped
