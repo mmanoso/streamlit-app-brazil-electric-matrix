@@ -29,7 +29,7 @@ fuel_type_name = dfData["fuel_type_name"].unique()
 generator_type = dfData["generator_type"].unique()
 states = dfData["states"].unique()
 status = dfData["status"].unique()
-category_filter = ["fuel_origin", "fuel_type", "fuel_type_name", "generator_type"]
+column_names = ["fuel_origin", "fuel_type", "fuel_type_name", "generator_type"]
 
 # configure the sidebar
 with st.sidebar:
@@ -52,7 +52,7 @@ with st.sidebar:
     # Status of the plant
     par_status = st.selectbox("Status", options=status, index=0)
     # Clasification for points in map
-    par_category = st.selectbox("Category", options=category_filter, index=0)
+    par_category = st.selectbox("Category", options=column_names, index=0)
 
 
 # title of the page
