@@ -6,7 +6,7 @@ import pandas as pd
 def apply_filters_to_df(
     df,
     status=None,
-    state=None,
+    states=None,
     fuel_type=None,
     fuel_origin=None,
     generator_type=None,
@@ -30,9 +30,9 @@ def apply_filters_to_df(
 
     # define the conditions to filter
     if status:
-        df_filtered = df_filtered[df_filtered["Status"].isin(status)]
-    if state:
-        df_filtered = df_filtered[df_filtered["State"].isin(state)]
+        df_filtered = df_filtered[df_filtered["status"].isin(status)]
+    if states:
+        df_filtered = df_filtered[df_filtered["states"].isin(states)]
     if fuel_origin:
         df_filtered = df_filtered[df_filtered["fuel_origin"].isin(fuel_origin)]
     if fuel_type:
@@ -63,9 +63,7 @@ def groupby_func_to_df(df, category):
 
     # apply groupby function
     df_grouped = (
-        df_grouped.groupby(category)
-        .agg({"electric_power_inst": "sum", "electric_power_decl": "sum"})
-        .reset_index()
+        df_grouped.groupby(category).agg({"electric_power_inst": "sum"}).reset_index()
     )
 
     # return the df

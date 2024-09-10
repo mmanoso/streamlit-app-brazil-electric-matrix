@@ -108,7 +108,7 @@ def choropleth_mapbox_ele_pow(df, geodf, status, colors_scale):
 
 
 # define bar plot by status and category
-def bar_plot_status_category(df, status, category, color_scale):
+def bar_plot_status_category(df, category, color_dict):
 
     # # read data
     # csv_file_path = r"C:\Users\Mariano\Documents\aprendizaje-data-science\repositorio-brazilian-electric-matrix\Brazilian-electric-matrix\data\processed\transformed_data.pkl"
@@ -116,17 +116,14 @@ def bar_plot_status_category(df, status, category, color_scale):
     df_aux = df
     # make sorted dataframe
     df_sorted = (
-        df_aux[df_aux["status"] == status]
-        .groupby(category)
-        .agg({"electric_power_inst": "sum", "electric_power_decl": "sum"})
-        .reset_index()
+        df_aux.groupby(category).agg({"electric_power_inst": "sum"}).reset_index()
     )
     # define colors
     # get unique values of categories
     categories = list(df_aux[category].unique())
-    # get a dictionary with fix colors for each category
-    color_dict = generate_color_dict_plotly(categories=categories, colormap=color_scale)
-    color = get_color_plotly(color_dict=color_dict, categories=categories)
+    # # get a dictionary with fix colors for each category
+    # color_dict = generate_color_dict_plotly(categories=categories, colormap=color_scale)
+    # color = get_color_plotly(color_dict=color_dict, categories=categories)
     # make bar graph
     fig = px.bar(
         df_sorted,
@@ -138,7 +135,8 @@ def bar_plot_status_category(df, status, category, color_scale):
         labels={category: category, "y": "Electric Power (MW)"},
     )
     fig.update_layout(
-        legend_title=None
+        legend_title=None,
+        showlegend=False,
         # paper_bgcolor="#343a40",
         # plot_bgcolor="#343a40",
         # font_color="white",
@@ -148,22 +146,19 @@ def bar_plot_status_category(df, status, category, color_scale):
 
 
 # #define pie plot by status and category
-def pie_plot_status_category(df, status, category, color_scale):
+def pie_plot_status_category(df, category, color_dict):
 
     # # read data
     # csv_file_path = r"C:\Users\Mariano\Documents\aprendizaje-data-science\repositorio-brazilian-electric-matrix\Brazilian-electric-matrix\data\processed\transformed_data.pkl"
     # df_aux = pd.read_pickle(csv_file_path)
     df_aux = df
-    # generate colors for graphs
-    categories = list(df_aux[category].unique())
-    color_dict = generate_color_dict_plotly(categories=categories, colormap=color_scale)
+    # # generate colors for graphs
+    # categories = list(df_aux[category].unique())
+    # color_dict = generate_color_dict_plotly(categories=categories, colormap=color_scale)
 
     # make sorted dataframe
     df_sorted = (
-        df_aux[df_aux["status"] == status]
-        .groupby(category)
-        .agg({"electric_power_inst": "sum", "electric_power_decl": "sum"})
-        .reset_index()
+        df_aux.groupby(category).agg({"electric_power_inst": "sum"}).reset_index()
     )
 
     # plot the pie graph

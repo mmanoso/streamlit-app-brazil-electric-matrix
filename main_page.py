@@ -45,7 +45,7 @@ with st.sidebar:
     #    "Generator Type", options=generator_type, default=generator_type
     # )
     # Status of the plant
-    par_status = st.selectbox("Status", options=status, index=0)
+    par_selec_status = st.selectbox("Status", options=status, index=0)
     # Clasification for points in map
     par_category = st.selectbox("Category", options=map_category, index=0)
 
@@ -56,7 +56,7 @@ st.header("Brazilian electric matrix - Home")
 fig = vf.loc_map_plot(
     df=dfData,
     geodf=dfGeoData,
-    status=par_status,
+    status=par_selec_status,
     category=par_category,
     color_scale="Pastel",
 )

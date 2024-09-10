@@ -5,6 +5,7 @@ import numpy as np
 import plotly.express as px
 import streamlit as st
 import visualization_func as vz
+import aux_func as aux
 
 # initial config parameters of the web page
 st.set_page_config(
@@ -43,36 +44,72 @@ st.sidebar.divider()
 
 with st.sidebar:
     # Filters
+    # fuel origin
+    par_multi_fuel_origin = st.multiselect(
+        "Fuel Origin", options=fuel_origin, default=None
+    )
     # Fuel type
-    # par_fuel_type = st.multiselect("Fuel Type", options=fuel_type, default=fuel_type)
+    par_multi_fuel_type = st.multiselect("Fuel Type", options=fuel_type, default=None)
+    # fuel type name
+    par_multi_fuel_type_name = st.multiselect(
+        "Fuel Type Name", options=fuel_type_name, default=None
+    )
     # Generator type
-    # par_generator_type = st.multiselect(
-    #     "Generator Type", options=generator_type, default=generator_type
-    # )
+    par_multi_generator_type = st.multiselect(
+        "Generator Type", options=generator_type, default=None
+    )
+    # states
+    par_multi_states = st.multiselect("States", options=states, default=None)
     # Status of the plant
-    par_status = st.selectbox("Status", options=status, index=0)
+    # par_status = st.selectbox("Status", options=status, index=0)
     # Clasification for points in map
-    par_category = st.selectbox("Category", options=column_names, index=0)
+    # par_category = st.selectbox("Category", options=column_names, index=0)
+
+# define variables becouse the first use dont define them
 
 
 # title of the page
 st.header("Brazilian electric matrix - Electric Matrix")
-st.subheader(f"Electric Power by {par_status} and by {par_category}")
 
+par_multi_status = st.multiselect("Status", options=status, default=status)
+# par_selec_status = list(st.selectbox("Status", options=status, index=0))
+par_multi_category = st.multiselect(
+    "Category", options=column_names, default=column_names
+)
+par_selec_category = st.selectbox("Graph Type", options=column_names, index=0)
+# graphs title
+st.subheader(f"Electric Power by {par_selec_category}")
+# apply filters to data
+df_filtered = aux.apply_filters_to_df(
+    df=dfData,
+    status=par_multi_status,
+    states=par_multi_states,
+    fuel_origin=par_multi_fuel_origin,
+    fuel_type=par_multi_fuel_type,
+    fuel_type_name=par_multi_fuel_type_name,
+    generator_type=par_multi_generator_type,
+)
+
+df_grouped = aux.groupby_func_to_df(df_filtered, par_multi_category)
+
+# manage colors for graphs
+color_dict = vz.generate_color_dict_plotly(
+    categories=dfData[par_selec_category].unique(), colormap="Pastel"
+)
+# graphs
 c1, c2 = st.columns(2)
 with c1:
-    fig = vz.bar_plot_status_category(dfData, par_status, par_category, "Pastel")
+    fig = vz.bar_plot_status_category(
+        df_grouped, category=par_selec_category, color_dict=color_dict
+    )
     st.plotly_chart(fig, use_container_width=True)
 
 with c2:
-    fig = vz.pie_plot_status_category(dfData, par_status, par_category, "Pastel")
+    fig = vz.pie_plot_status_category(
+        df_grouped, category=par_selec_category, color_dict=color_dict
+    )
     st.plotly_chart(fig, use_container_width=True)
 
 # display table
 st.subheader("Table for total Electric Power")
-display_table = (
-    dfData[dfData["status"] == par_status]
-    .groupby(["fuel_origin", "generator_type", "fuel_type"])
-    .agg({"electric_power_inst": "sum"})
-).reset_index()
-st.table(display_table)
+st.table(df_grouped)
