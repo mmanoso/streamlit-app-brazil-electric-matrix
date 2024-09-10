@@ -5,6 +5,7 @@ import plotly.express as px
 import streamlit as st
 import visualization_func as vf
 
+# esto deberia estar en def-groupby-func-for-graphs-and-filter
 # initial config parameters of the web page
 st.set_page_config(
     page_title="Brazilian electric matrix analysis",
