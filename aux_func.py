@@ -4,7 +4,13 @@ import pandas as pd
 
 # define a filtering function
 def apply_filters_to_df(
-    df, status=None, state=None, fuel_type=None, fuel_origin=None, generator_type=None
+    df,
+    status=None,
+    state=None,
+    fuel_type=None,
+    fuel_origin=None,
+    generator_type=None,
+    fuel_type_name=None,
 ):
     """
     Apply the users filters to the dataframe for later visualizations.
@@ -31,6 +37,8 @@ def apply_filters_to_df(
         df_filtered = df_filtered[df_filtered["fuel_origin"].isin(fuel_origin)]
     if fuel_type:
         df_filtered = df_filtered[df_filtered["fuel_type"].isin(fuel_type)]
+    if fuel_type_name:
+        df_filtered = df_filtered[df_filtered["fuel_type_name"].isin(fuel_type_name)]
     if generator_type:
         df_filtered = df_filtered[df_filtered["generator_type"].isin(generator_type)]
 
