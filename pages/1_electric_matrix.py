@@ -19,7 +19,7 @@ st.set_page_config(
 csv_file_path = r"https://github.com/mmanoso/Brazilian-electric-matrix/blob/main/data/processed/transformed_data_app.pkl?raw=true"
 dfData = pd.read_pickle(csv_file_path)
 
-# initialize filters in session state for dinamic filters
+# initialize filters in session state for dynamic filters
 if "filters" not in st.session_state:
     st.session_state.filters = {
         "status": [],
@@ -118,9 +118,11 @@ st.header("Brazilian electric matrix - Electric Matrix")
 # par_multi_status = st.multiselect("Status", options=status, default=status)
 # par_selec_status = list(st.selectbox("Status", options=status, index=0))
 par_multi_category = st.multiselect(
-    "Category", options=column_names, default=column_names
+    "Select columns to display in table:", options=column_names, default=column_names
 )
-par_selec_category = st.selectbox("Graph Type", options=column_names, index=0)
+par_selec_category = st.selectbox(
+    "Select table column to graph:", options=par_multi_category, index=0
+)
 # graphs title
 st.subheader(f"Electric Power by {par_selec_category}")
 # apply filters to data
