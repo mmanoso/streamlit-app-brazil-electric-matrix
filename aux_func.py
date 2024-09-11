@@ -93,3 +93,19 @@ def get_filtered_options(df, column, filters):
             df = df[df[col].isin(values)]
 
     return sorted(df[column].unique())
+
+
+# function for forcing at least 1 option in a filter
+def ensure_last_selection(new_selection, last_valid_selection):
+    """
+    This function ensures that at least 1 selection is maintained. The result of the selection ends in
+    a graph function that will crash if nothing is selected. This way the user can't deselect everything
+    and make the app crash
+
+    new_selection: list of columns names selected
+    last_valid_selection: list stored in session state with the last valid selection
+
+    """
+    if new_selection:
+        return new_selection, new_selection
+    return last_valid_selection, last_valid_selection
