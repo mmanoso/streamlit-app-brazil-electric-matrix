@@ -120,7 +120,7 @@ def bar_plot_status_category(df, category, color_dict):
     )
     # define colors
     # get unique values of categories
-    categories = list(df_aux[category].unique())
+    # categories = list(df_aux[category].unique())
     # # get a dictionary with fix colors for each category
     # color_dict = generate_color_dict_plotly(categories=categories, colormap=color_scale)
     # color = get_color_plotly(color_dict=color_dict, categories=categories)
@@ -137,10 +137,12 @@ def bar_plot_status_category(df, category, color_dict):
     fig.update_layout(
         legend_title=None,
         showlegend=False,
+        xaxis_title=None,
         # paper_bgcolor="#343a40",
         # plot_bgcolor="#343a40",
         # font_color="white",
     )
+    fig.update_xaxes(tickangle=45)
 
     return fig
 

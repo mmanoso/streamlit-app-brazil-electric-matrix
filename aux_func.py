@@ -68,3 +68,28 @@ def groupby_func_to_df(df, category):
 
     # return the df
     return df_grouped
+
+
+# function for dynamic cascading or dependant filters
+def get_filtered_options(df, column, filters):
+    """
+    df: The original dataframe
+    column: The name of the column for which we want to get filtered options
+    filters: A dictionary of current filter selections for other columns
+
+    1
+    It iterates through each filter in the filters dictionary:
+    col is the name of a filter (e.g., 'fuel_origin', 'states')
+    values is the list of selected values for that filter
+    2
+    If values is not empty (meaning some filter options are selected):
+    It filters the dataframe to only include rows where the value in col is in the list of selected values
+    3
+    After applying all the filters, it returns a sorted list of unique values from the specified column of
+    the resulting filtered dataframe
+    """
+    for col, values in filters.items():
+        if values:
+            df = df[df[col].isin(values)]
+
+    return sorted(df[column].unique())
