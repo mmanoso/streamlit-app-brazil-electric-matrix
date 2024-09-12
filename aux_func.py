@@ -1,77 +1,76 @@
 import numpy as np
 import pandas as pd
+from typing import Dict, List, Any, Optional, Tuple, Union
 
 
 # define a filtering function
 def apply_filters_to_df(
-    df,
-    status=None,
-    states=None,
-    fuel_type=None,
-    fuel_origin=None,
-    generator_type=None,
-    fuel_type_name=None,
-):
+    df: pd.DataFrame,
+    status: Optional[List[str]] = None,
+    states: Optional[List[str]] = None,
+    fuel_type: Optional[List[str]] = None,
+    fuel_origin: Optional[List[str]] = None,
+    generator_type: Optional[List[str]] = None,
+    fuel_type_name: Optional[List[str]] = None,
+) -> pd.DataFrame:
     """
     Apply the users filters to the dataframe for later visualizations.
 
-    df: dataframe to be filtered.
-    status(str or list of str, optional): Operative status of the power plant (Operative, Projected or In construction).
-    state(str or list of str, optional): state of Brazil where is located the power plant.
-    fuel_type(str or list of str, optional): specific fuel used in the power plant.
-    fuel_origin(str or list of str, optional): general origin of the fuel used in the power plant, a more general clasification.
-    generator_type(str or list of str, optional): type of electric generator used to generate electricity based in the fuel.
+    Args:
+        df (pd.DataFrame): DataFrame to be filtered.
+        status (Optional[List[str]]): Operative status of the power plant.
+        states (Optional[List[str]]): States of Brazil where the power plants are located.
+        fuel_type (Optional[List[str]]): Specific fuel used in the power plant.
+        fuel_origin (Optional[List[str]]): General origin of the fuel used in the power plant.
+        generator_type (Optional[List[str]]): Type of electric generator used.
+        fuel_type_name (Optional[List[str]]): Name of the fuel type.
 
-    return a filtered df
+    Returns:
+        pd.DataFrame: Filtered DataFrame
+
     """
 
     # define the filtered df
     df_filtered = df.copy()
 
-    # define the conditions to filter
-    if status:
-        df_filtered = df_filtered[df_filtered["status"].isin(status)]
-    if states:
-        df_filtered = df_filtered[df_filtered["states"].isin(states)]
-    if fuel_origin:
-        df_filtered = df_filtered[df_filtered["fuel_origin"].isin(fuel_origin)]
-    if fuel_type:
-        df_filtered = df_filtered[df_filtered["fuel_type"].isin(fuel_type)]
-    if fuel_type_name:
-        df_filtered = df_filtered[df_filtered["fuel_type_name"].isin(fuel_type_name)]
-    if generator_type:
-        df_filtered = df_filtered[df_filtered["generator_type"].isin(generator_type)]
+    # create dictionary of filters
+    filter_conditions = {
+        "status": status,
+        "states": states,
+        "fuel_origin": fuel_origin,
+        "fuel_type": fuel_type,
+        "fuel_type_name": fuel_type_name,
+        "generator_type": generator_type,
+    }
 
-    # return the filtered dataframe
+    for column, values in filter_conditions.items():
+        if values:
+            df_filtered = df_filtered[df_filtered[column].isin(values)]
+
     return df_filtered
 
 
 # define groupby function for graphs
-def groupby_func_to_df(df, category):
+def groupby_func_to_df(
+    df: pd.DataFrame, category: Union[str, List[str]]
+) -> pd.DataFrame:
     """
-    Function to groupby acording to a category incerted as input. The category will be graph vs the
-     sum of electric power inst.
+    Group the DataFrame by a category and sum the electric power.
 
-    df: dataframe to groupby
-    category: header of the column or list of header of columns to be group by.
+    Args:
+        df (pd.DataFrame): DataFrame to group
+        category (Union[str, List[str]]): Column(s) to group by
 
-    return a gropued dataframe
+    Returns:
+        pd.DataFrame: Grouped DataFrame
     """
-
-    # direct dataframe
-    df_grouped = df.copy()
-
-    # apply groupby function
-    df_grouped = (
-        df_grouped.groupby(category).agg({"electric_power_inst": "sum"}).reset_index()
-    )
-
-    # return the df
-    return df_grouped
+    return df.groupby(category).agg({"electric_power_inst": "sum"}).reset_index()
 
 
 # function for dynamic cascading or dependant filters
-def get_filtered_options(df, column, filters):
+def get_filtered_options(
+    df: pd.DataFrame, column: str, filters: Dict[str, List[str]]
+) -> List[str]:
     """
     df: The original dataframe
     column: The name of the column for which we want to get filtered options
@@ -87,6 +86,14 @@ def get_filtered_options(df, column, filters):
     3
     After applying all the filters, it returns a sorted list of unique values from the specified column of
     the resulting filtered dataframe
+
+    Args:
+        df (pd.DataFrame): The original DataFrame
+        column (str): The name of the column for which we want to get filtered options
+        filters (Dict[str, List[str]]): A dictionary of current filter selections for other columns
+
+    Returns:
+        List[str]: Sorted list of unique values from the specified column
     """
     for col, values in filters.items():
         if values:
@@ -96,15 +103,18 @@ def get_filtered_options(df, column, filters):
 
 
 # function for forcing at least 1 option in a filter
-def ensure_last_selection(new_selection, last_valid_selection):
+def ensure_last_selection(
+    new_selection: List[str], last_valid_selection: List[str]
+) -> Tuple[List[str], List[str]]:
     """
-    This function ensures that at least 1 selection is maintained. The result of the selection ends in
-    a graph function that will crash if nothing is selected. This way the user can't deselect everything
-    and make the app crash
+    Ensure that at least 1 selection is maintained.
 
-    new_selection: list of columns names selected
-    last_valid_selection: list stored in session state with the last valid selection
+    Args:
+        new_selection (List[str]): List of columns names selected
+        last_valid_selection (List[str]): List stored in session state with the last valid selection
 
+    Returns:
+        Tuple[List[str], List[str]]: Tuple containing the current selection and the last valid selection
     """
     if new_selection:
         return new_selection, new_selection

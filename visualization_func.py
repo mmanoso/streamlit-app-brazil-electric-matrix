@@ -5,16 +5,22 @@ import geopandas as gpd
 import plotly.express as px
 import plotly.colors as pc
 import plotly.graph_objects as go
+from typing import Dict, List, Any
+import streamlit as st
 
 
+@st.cache_data
 # define function for manage colors in graphs
-def generate_color_dict_plotly(categories, colormap):
+def generate_color_dict_plotly(categories: List[str], colormap: str) -> Dict[str, str]:
     """
     Create a color dictionary for given variables using a specified Plotly color palette.
 
-    :param variables: List of variable names
-    :param palette_name: Name of the Plotly qualitative color palette to use (default is 'Plotly')
-    :return: Dictionary mapping variables to colors
+    Args:
+        categories (List[str]): List of category names
+        colormap (str): Name of the Plotly qualitative color palette to use
+
+    Returns:
+    Dict[str, str]: Dictionary mapping categories to colors
     """
     try:
         colors = getattr(px.colors.qualitative, colormap)
@@ -22,14 +28,10 @@ def generate_color_dict_plotly(categories, colormap):
         print(f"Palette '{colormap}' not found. Using default 'Plotly' palette.")
         colors = px.colors.qualitative.Plotly
 
-    # Create the dictionary
-    color_dict = {}
-    for i, variable in enumerate(categories):
-        color_dict[variable] = colors[i % len(colors)]
-
-    return color_dict
+    return {category: colors[i % len(colors)] for i, category in enumerate(categories)}
 
 
+@st.cache_data
 def get_color_plotly(color_dict, categories):
     """
     Get colors for specified categories from a color dictionary.
@@ -44,8 +46,22 @@ def get_color_plotly(color_dict, categories):
 
 
 # define function for display choropleth map
-def choropleth_mapbox_ele_pow(df, geodf, status, colors_scale):
+# @st.cache_resource
+def choropleth_mapbox_ele_pow(
+    df: pd.DataFrame, geodf: gpd.GeoDataFrame, status: str, colors_scale: str
+) -> go.Figure:
+    """
+    Create a choropleth map of electric power by state.
 
+    Args:
+        df (pd.DataFrame): DataFrame containing power plant data
+        geodf (gpd.GeoDataFrame): GeoDataFrame containing state boundaries
+        status (str): Status of power plants to display
+        colors_scale (str): Color scale for the choropleth map
+
+    Returns:
+        go.Figure: Plotly figure object containing the choropleth map
+    """
     # # read procesed data
     # csv_file_path = r"C:\Users\Mariano\Documents\aprendizaje-data-science\repositorio-brazilian-electric-matrix\Brazilian-electric-matrix\data\processed\transformed_data.pkl"
     # df_aux = pd.read_pickle(csv_file_path)
@@ -53,11 +69,10 @@ def choropleth_mapbox_ele_pow(df, geodf, status, colors_scale):
     # # read geojson data
     # geojson_file_path_state = r"C:\Users\Mariano\Documents\aprendizaje-data-science\repositorio-brazilian-electric-matrix\Brazilian-electric-matrix\data\processed\all_states.geojson"
     # geojson_data_state = gpd.read_file(geojson_file_path_state)
-    df_aux = df
-    geojson_data_state = geodf
+
     # make dataframe for map
     df_sorted = (
-        df_aux[df_aux["status"] == status]
+        df[df["status"] == status]
         .groupby("states")
         .agg({"electric_power_inst": "sum", "electric_power_decl": "sum"})
         .reset_index()
@@ -68,8 +83,8 @@ def choropleth_mapbox_ele_pow(df, geodf, status, colors_scale):
     key_max = np.percentile(df_sorted.electric_power_inst, 95)
 
     # get the center of brazil to display by default
-    state_bounds = geojson_data_state.geometry.total_bounds
-    south, west, north, east = state_bounds
+    # state_bounds = geojson_data_state.geometry.total_bounds
+    # south, west, north, east = state_bounds
 
     # Calculate the center coordinates
     # center = {"lat": (south + north) / 2, "lon": (west + east) / 2}
@@ -80,7 +95,7 @@ def choropleth_mapbox_ele_pow(df, geodf, status, colors_scale):
     # create choropleth map
     fig = px.choropleth_mapbox(
         df_sorted,
-        geojson=geojson_data_state,
+        geojson=geodf,
         locations="states",
         featureidkey="properties.abbrev_state",
         color="electric_power_inst",
@@ -108,22 +123,28 @@ def choropleth_mapbox_ele_pow(df, geodf, status, colors_scale):
 
 
 # define bar plot by status and category
-def bar_plot_status_category(df, category, color_dict):
+@st.cache_data
+def bar_plot_status_category(
+    df: pd.DataFrame, category: str, color_dict: Dict[str, str]
+) -> go.Figure:
+    """
+    Create a bar plot of electric power by category.
 
-    # # read data
-    # csv_file_path = r"C:\Users\Mariano\Documents\aprendizaje-data-science\repositorio-brazilian-electric-matrix\Brazilian-electric-matrix\data\processed\transformed_data.pkl"
-    # df_aux = pd.read_pickle(csv_file_path)
-    df_aux = df
+    Args:
+        df (pd.DataFrame): DataFrame containing grouped data
+        category (str): Category to plot
+        color_dict (Dict[str, str]): Dictionary mapping categories to colors
+
+    Returns:
+        go.Figure: Plotly figure object containing the bar plot
+    """
+
+    df_aux = df.copy()
     # make sorted dataframe
     df_sorted = (
         df_aux.groupby(category).agg({"electric_power_inst": "sum"}).reset_index()
     )
-    # define colors
-    # get unique values of categories
-    # categories = list(df_aux[category].unique())
-    # # get a dictionary with fix colors for each category
-    # color_dict = generate_color_dict_plotly(categories=categories, colormap=color_scale)
-    # color = get_color_plotly(color_dict=color_dict, categories=categories)
+
     # make bar graph
     fig = px.bar(
         df_sorted,
@@ -136,11 +157,8 @@ def bar_plot_status_category(df, category, color_dict):
     )
     fig.update_layout(
         legend_title=None,
-        showlegend=False,
+        showlegend=True,
         xaxis_title=None,
-        # paper_bgcolor="#343a40",
-        # plot_bgcolor="#343a40",
-        # font_color="white",
     )
     fig.update_xaxes(tickangle=45)
 
@@ -148,15 +166,23 @@ def bar_plot_status_category(df, category, color_dict):
 
 
 # #define pie plot by status and category
-def pie_plot_status_category(df, category, color_dict):
+@st.cache_data
+def pie_plot_status_category(
+    df: pd.DataFrame, category: str, color_dict: Dict[str, str]
+) -> go.Figure:
+    """
+    Create a pie plot of electric power by category.
 
-    # # read data
-    # csv_file_path = r"C:\Users\Mariano\Documents\aprendizaje-data-science\repositorio-brazilian-electric-matrix\Brazilian-electric-matrix\data\processed\transformed_data.pkl"
-    # df_aux = pd.read_pickle(csv_file_path)
-    df_aux = df
-    # # generate colors for graphs
-    # categories = list(df_aux[category].unique())
-    # color_dict = generate_color_dict_plotly(categories=categories, colormap=color_scale)
+    Args:
+        df (pd.DataFrame): DataFrame containing grouped data
+        category (str): Category to plot
+        color_dict (Dict[str, str]): Dictionary mapping categories to colors
+
+    Returns:
+        go.Figure: Plotly figure object containing the bar plot
+    """
+
+    df_aux = df.copy()
 
     # make sorted dataframe
     df_sorted = (
@@ -174,16 +200,13 @@ def pie_plot_status_category(df, category, color_dict):
         labels={category: category, "electric_power_inst": "Electric Power (KW)"},
     )
 
-    fig.update_layout(
-        # paper_bgcolor="#343a40",
-        # plot_bgcolor="#343a40",
-        # font_color="white",
-    )
+    fig.update_layout(showlegend=False)
 
     return fig
 
 
 # #define historical line plot
+@st.cache_data
 def hist_line_plot(df, category, color_scale):
 
     # read data
@@ -262,6 +285,7 @@ def hist_line_plot(df, category, color_scale):
 
 
 # define location map for every generator
+# @st.cache_resource
 def loc_map_plot(df, geodf, status, category, color_scale):
 
     # # read data
