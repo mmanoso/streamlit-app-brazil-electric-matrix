@@ -3,18 +3,28 @@ import numpy as np
 
 # import plotly.express as px
 import streamlit as st
+import streamlit_dynamic_filters as stdf
 from typing import List, Dict, Any
-import visualization_func as vz
-import aux_func as aux
-
-# import file paths and constants
-import config
+import visualization_func as vz  # visualization functions for graphs
+import aux_func as aux  # auxiliary functions for manage data
+import config  # import file paths and constants
 
 
-# callbackfunction for sidebar filters
-def update_filters_sidebar(filter_name, selected_options):
-    """Ensures the inmediate writing of the filter to avoid having to click 2 times"""
-    st.session_state.filters[filter_name] = selected_options
+# # callbackfunction for sidebar filters
+# def update_filters_sidebar(filter_name, selected_options):
+#     """Ensures the inmediate writing of the filter to avoid having to click 2 times"""
+#     st.session_state.filters[filter_name] = selected_options
+# callback to reset filters and apply changes to dataframe
+def reset_filters():
+    if "filters" in st.session_state:
+        st.session_state.filters = {
+            "status": [],
+            "fuel_origin": [],
+            "fuel_type": [],
+            "fuel_type_name": [],
+            "generator_type": [],
+            "states": [],
+        }
 
 
 # initialize session state variables
@@ -30,10 +40,9 @@ def initialize_session_state_data() -> None:
             st.stop()
 
 
-def initialize_session_state_variables() -> None:
+def reinitialize_session_state_filters() -> None:
     # filters
-    if "filters" not in st.session_state:
-
+    if "filters" in st.session_state:
         st.session_state.filters = {
             "status": [],
             "fuel_origin": [],
@@ -43,17 +52,29 @@ def initialize_session_state_variables() -> None:
             "states": [],
         }
 
+
+def initialize_session_state_variables() -> None:
+    # filters
+    if "filters" not in st.session_state:
+        st.session_state.filters = {
+            "status": [],
+            "fuel_origin": [],
+            "fuel_type": [],
+            "fuel_type_name": [],
+            "generator_type": [],
+            "states": [],
+        }
     # filtered dataframe
     if "df_filtered" not in st.session_state:
         st.session_state.df_filtered = st.session_state.dfData
 
     # column names selection
     if "groupby_columns" not in st.session_state:
-        st.session_state.groupby_columns = config.column_names_all
+        st.session_state.groupby_columns = config.groupby_column_names
 
     # selection of column for graph
     if "graph_column" not in st.session_state:
-        st.session_state.graph_column = config.column_names_all[0]
+        st.session_state.graph_column = config.groupby_column_names[0]
 
 
 # define function for sidebar navigation and filters
@@ -70,37 +91,62 @@ def render_sidebar() -> None:
 
     st.sidebar.divider()
 
-    with st.sidebar:
-        # display filters to select
-        st.write("Select the filters:")
-        for filter_name in st.session_state.filters.keys():
-            options = aux.get_filtered_options(
-                st.session_state.dfData,
-                filter_name,
-                {k: v for k, v in st.session_state.filters.items() if k != filter_name},
-            )
-            st.session_state.filters[filter_name] = st.multiselect(
-                f"Select {filter_name}",
-                options=options,
-                default=st.session_state.filters[filter_name],
-                key=filter_name,
-                on_change=update_filters_sidebar,
-                args=(filter_name, st.session_state.filters[filter_name]),
-            )
-            # st.write(f"Selected {filter_name}: {st.session_state.filters[filter_name]}")
-        # button to click to apply selected filters
-        if st.button("Apply Filters"):
-            apply_filters()
+    # with st.sidebar:
+    #     # display filters to select
+    #     st.write("Select the filters:")
+    #     for filter_name in st.session_state.filters.keys():
+    #         options = aux.get_filtered_options(
+    #             st.session_state.dfData,
+    #             filter_name,
+    #             {k: v for k, v in st.session_state.filters.items() if k != filter_name},
+    #         )
+    #         st.session_state.filters[filter_name] = st.multiselect(
+    #             f"Select {filter_name}",
+    #             options=options,
+    #             default=st.session_state.filters[filter_name],
+    #             key=filter_name,
+    #             on_change=update_filters_sidebar,
+    #             args=(filter_name, st.session_state.filters[filter_name]),
+    #         )
+    #         st.write(f"Selected {filter_name}: {st.session_state.filters[filter_name]}")
+    #         st.write(f"Selected {filter_name}: {options}")
+    #     # button to click to apply selected filters
+    #     c1, c2 = st.columns(2)
+    #     with c1:
+    #         # button to click to apply selected filters
+    #         if st.button("Apply Filters"):
+    #             apply_filters()
+    #     with c2:
+    #         # button to click to reset all filters at once
+    #         if st.button("Reset Filters"):
+    #             reset_filters()
 
 
-def apply_filters() -> None:
-    """Apply selected filters to the dataframe"""
-    try:
-        st.session_state.df_filtered = aux.apply_filters_to_df(
-            st.session_state.dfData, **st.session_state.filters
-        )
-    except Exception as e:
-        st.error(f"Error applying filters: {str(e)}")
+# def apply_filters() -> None:
+#     """Apply selected filters to the dataframe"""
+#     try:
+#         st.session_state.df_filtered = aux.apply_filters_to_df(
+#             st.session_state.dfData, **st.session_state.filters
+#         )
+#     except Exception as e:
+#         st.error(f"Error applying filters: {str(e)}")
+
+
+# # define function for button of reset filter in sidebar
+# def reset_filters() -> None:
+#     """Reset all selected filters for the dataframe"""
+#     try:
+#         st.session_state.filters = {
+#             "status": [],
+#             "fuel_origin": [],
+#             "fuel_type": [],
+#             "fuel_type_name": [],
+#             "generator_type": [],
+#             "states": [],
+#         }
+#         apply_filters()
+#     except Exception as e:
+#         st.error(f"Error reseting filters: {str(e)}")
 
 
 # function for render the main content of the page
@@ -111,10 +157,9 @@ def render_main_content() -> None:
     # select filters to group and graph
     groupby_columns = st.multiselect(
         "Select columns to display in table:",
-        options=config.column_names_all,
+        options=config.groupby_column_names,
         default=st.session_state.groupby_columns,
         key="groupby_columns",
-        # on_change=(update_groupby_columns),
     )
 
     if st.session_state.groupby_columns:
@@ -176,8 +221,33 @@ def main() -> None:
     )
 
     initialize_session_state_data()
+
     initialize_session_state_variables()
-    render_sidebar()
+    dynamic_filters = stdf.DynamicFilters(
+        st.session_state.dfData,
+        filters=config.dynamic_filter_column_names,
+        filters_name="filters",
+    )
+    dynamic_filters.check_state()
+
+    with st.sidebar:
+        st.write("Navigation pages:")
+        # pages
+        st.page_link("main_page.py", label="Home")
+        st.page_link("pages/1_electric_matrix.py", label="Electric Matrix")
+        st.page_link("pages/2_hist_evol.py", label="Historical Evolution")
+        st.page_link("pages/3_geo_distr.py", label="Geographic Distribution")
+
+    st.sidebar.divider()
+
+    dynamic_filters.display_filters("sidebar")
+    with st.sidebar:
+        if st.button("Reset Filters"):
+            reinitialize_session_state_filters()
+            st.rerun()
+    # dynamic_filters.display_df()
+    # st.dataframe(dynamic_filters.display_df())
+    st.session_state.df_filtered = dynamic_filters.filter_df()
     render_main_content()
 
 
