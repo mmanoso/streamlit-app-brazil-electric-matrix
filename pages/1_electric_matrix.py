@@ -48,28 +48,28 @@ def reinitialize_session_state_filters() -> None:
         }
 
 
-def initialize_session_state_variables() -> None:
-    # filters
-    if "filters" not in st.session_state:
-        st.session_state.filters = {
-            "status": [],
-            "fuel_origin": [],
-            "fuel_type": [],
-            "fuel_type_name": [],
-            "generator_type": [],
-            "states": [],
-        }
-    # filtered dataframe
-    if "df_filtered" not in st.session_state:
-        st.session_state.df_filtered = st.session_state.dfData
+# def initialize_session_state_variables() -> None:
+#     # filters
+#     if "filters" not in st.session_state:
+#         st.session_state.filters = {
+#             "status": [],
+#             "fuel_origin": [],
+#             "fuel_type": [],
+#             "fuel_type_name": [],
+#             "generator_type": [],
+#             "states": [],
+#         }
+#     # filtered dataframe
+#     if "df_filtered" not in st.session_state:
+#         st.session_state.df_filtered = st.session_state.dfData
 
-    # column names selection
-    if "groupby_columns" not in st.session_state:
-        st.session_state.groupby_columns = config.groupby_column_names
+#     # column names selection
+#     if "groupby_columns" not in st.session_state:
+#         st.session_state.groupby_columns = config.groupby_column_names
 
-    # selection of column for graph
-    if "graph_column" not in st.session_state:
-        st.session_state.graph_column = config.groupby_column_names[0]
+#     # selection of column for graph
+#     if "graph_column" not in st.session_state:
+#         st.session_state.graph_column = config.groupby_column_names[0]
 
 
 # define function for sidebar navigation and filters
@@ -153,7 +153,7 @@ def render_visualization(df_grouped: pd.DataFrame, category: str) -> None:
 
         # manage the color dictionary for the data
         color_dict = vz.generate_color_dict_plotly(
-            categories=st.session_state.dfData[category].unique(),
+            categories=st.session_state[category],
             colormap="Safe",
         )
 
@@ -188,9 +188,9 @@ def main() -> None:
         initial_sidebar_state="expanded",
     )
 
+    # initialize session state dataframe and variables
     aux.initialize_session_state_data()
-
-    initialize_session_state_variables()
+    aux.initialize_session_state_variables()
 
     # create dynamic filters for sidebar
     dynamic_filters = stdf.DynamicFilters(
@@ -200,15 +200,17 @@ def main() -> None:
     )
     dynamic_filters.check_state()
 
-    with st.sidebar:
-        st.write("Navigation pages:")
-        # pages
-        st.page_link("main_page.py", label="Home")
-        st.page_link("pages/1_electric_matrix.py", label="Electric Matrix")
-        st.page_link("pages/2_hist_evol.py", label="Historical Evolution")
-        st.page_link("pages/3_geo_distr.py", label="Geographic Distribution")
+    # render sidebar with navigation across pages
+    aux.render_sidebar()
+    # with st.sidebar:
+    #     st.write("Navigation pages:")
+    #     # pages
+    #     st.page_link("main_page.py", label="Home")
+    #     st.page_link("pages/1_electric_matrix.py", label="Electric Matrix")
+    #     st.page_link("pages/2_hist_evol.py", label="Historical Evolution")
+    #     st.page_link("pages/3_geo_distr.py", label="Geographic Distribution")
 
-    st.sidebar.divider()
+    # st.sidebar.divider()
 
     # display dynamic filters in sidebar
     dynamic_filters.display_filters("sidebar")
@@ -221,6 +223,8 @@ def main() -> None:
 
     # assign filtered df
     st.session_state.df_filtered = dynamic_filters.filter_df()
+
+    # render the main content of the page
     render_main_content()
 
 

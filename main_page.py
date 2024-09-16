@@ -6,89 +6,88 @@ import streamlit as st
 import visualization_func as vf
 import aux_func as aux
 
-# initial config parameters of the web page
-st.set_page_config(
-    page_title="Brazilian electric matrix analysis",
-    page_icon=":bar_chart:",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
 
-# # read procesed data
-# csv_file_path = r"https://github.com/mmanoso/Brazilian-electric-matrix/blob/main/data/processed/transformed_data_app.pkl?raw=true"
-# dfData = pd.read_pickle(csv_file_path)
+# define function for kpi of electric power
+def render_kpi_electric_power() -> None:
+    """Create KPI for Installed, Porjected and In construction electric power"""
 
-# # read geojson data
-# geojson_file_path_state = r"https://github.com/mmanoso/Brazilian-electric-matrix/blob/main/data/processed/all_states.geojson?raw=true"
-# dfGeoData = gpd.read_file(geojson_file_path_state)
-aux.initialize_session_state_data()
-aux.initialize_session_state_geodata()
-# obtain parameters for filtering data
-fuel_type = st.session_state.dfData["fuel_origin"].unique()
-generator_type = st.session_state.dfData["generator_type"].unique()
-status = st.session_state.dfData["status"].unique()
-map_category = ["fuel_origin", "generator_type"]
-# configure the sidebar
-with st.sidebar:
-    # pages
-    st.page_link("main_page.py", label="Home")
-    st.page_link("pages/1_electric_matrix.py", label="Electric Matrix")
-    st.page_link("pages/2_hist_evol.py", label="Historical Evolution")
-    st.page_link("pages/3_geo_distr.py", label="Geographic Distribution")
+    # data for total operative, projected and construction electric power
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        operative_electric_power = (
+            st.session_state.dfData.loc[
+                st.session_state.dfData["status"] == "Operação", "electric_power_inst"
+            ].sum()
+        ) / 1000
+        st.metric(
+            f"Total Installed Electric Power", f"{operative_electric_power:,.0f} MW"
+        )
 
-st.sidebar.divider()
+    with c2:
+        proj_electric_power = (
+            st.session_state.dfData.loc[
+                st.session_state.dfData["status"] == "Construção não iniciada",
+                "electric_power_inst",
+            ].sum()
+        ) / 1000
+        st.metric(f"Total Projected Electric Power", f"{proj_electric_power:,.0f} MW")
 
-with st.sidebar:
-    # Filters
-    # Fuel type
-    # par_fuel_type = st.multiselect("Fuel Type", options=fuel_type, default=fuel_type)
-    # Generator type
-    # par_generator_type = st.multiselect(
-    #    "Generator Type", options=generator_type, default=generator_type
-    # )
-    # Status of the plant
-    par_selec_status = st.selectbox("Status", options=status, index=0)
-    # Clasification for points in map
-    par_category = st.selectbox("Category", options=map_category, index=0)
+    with c3:
+        constr_electric_power = (
+            st.session_state.dfData.loc[
+                st.session_state.dfData["status"] == "Construção", "electric_power_inst"
+            ].sum()
+        ) / 1000
+        st.metric(
+            f"Total in Construction Electric Power", f"{constr_electric_power:,.0f} MW"
+        )
 
-# title of the page
-st.header("Brazilian electric matrix - Home")
 
-# map with location of power plants
-fig = vf.loc_map_plot(
-    df=st.session_state.dfData,
-    geodf=st.session_state.dfGeoData,
-    status=par_selec_status,
-    category=par_category,
-    color_scale="Pastel",
-)
-st.plotly_chart(fig, use_container_width=True)
+def main() -> None:
+    """Main function to run the streamlit app in Main Page"""
 
-# data for total operative, projected and construction electric power
-c1, c2, c3 = st.columns(3)
-with c1:
-    operative_electric_power = (
-        st.session_state.dfData.loc[
-            st.session_state.dfData["status"] == "Operação", "electric_power_inst"
-        ].sum()
-    ) / 1000
-    st.metric(f"Total Installed Electric Power", f"{operative_electric_power:,.0f} MW")
-
-with c2:
-    proj_electric_power = (
-        st.session_state.dfData.loc[
-            st.session_state.dfData["status"] == "Construção não iniciada",
-            "electric_power_inst",
-        ].sum()
-    ) / 1000
-    st.metric(f"Total Projected Electric Power", f"{proj_electric_power:,.0f} MW")
-
-with c3:
-    constr_electric_power = (
-        st.session_state.dfData.loc[
-            st.session_state.dfData["status"] == "Construção", "electric_power_inst"
-        ].sum()
-    ) / 1000
-    st.metric(
-        f"Total in Construction Electric Power", f"{constr_electric_power:,.0f} MW"
+    # page configuration
+    st.set_page_config(
+        page_title="Brazilian electric matrix analysis",
+        page_icon=":bar_chart:",
+        layout="wide",
+        initial_sidebar_state="expanded",
     )
+
+    # initialize data of original dataframe and geodataframe
+    aux.initialize_session_state_data()
+    aux.initialize_session_state_geodata()
+    aux.initialize_session_state_variables()
+
+    # render sidebar with pages naviation
+    aux.render_sidebar()
+
+    # add filters to sidebar
+    with st.sidebar:
+        # Status of the plant
+        par_selec_status = st.selectbox(
+            "Status", options=st.session_state.status, index=0
+        )
+        # Clasification for points in map
+        par_category = st.selectbox(
+            "Category", options=st.session_state.map_category, index=0
+        )
+    # title of the page
+    st.header("Brazilian electric matrix - Home")
+
+    # map with location of power plants
+    fig = vf.loc_map_plot(
+        df=st.session_state.dfData,
+        geodf=st.session_state.dfGeoData,
+        status=par_selec_status,
+        category=par_category,
+        color_scale="Pastel",
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    # render display of kpi for electric power
+    render_kpi_electric_power()
+
+
+if __name__ == "__main__":
+    main()

@@ -556,3 +556,68 @@ def initialize_session_state_geodata() -> None:
         except Exception as e:
             st.error(f"Error loading geodataframe: {str(e)}")
             st.stop()
+
+
+# Initialize variables in session state obtained from dfData
+def initialize_session_state_variables() -> None:
+    # filters
+    if "filters" not in st.session_state:
+        st.session_state.filters = {
+            "status": [],
+            "fuel_origin": [],
+            "fuel_type": [],
+            "fuel_type_name": [],
+            "generator_type": [],
+            "states": [],
+        }
+    # filtered dataframe
+    if "df_filtered" not in st.session_state:
+        st.session_state.df_filtered = st.session_state.dfData
+
+    # column names selection
+    if "groupby_columns" not in st.session_state:
+        st.session_state.groupby_columns = config.groupby_column_names
+
+    # selection of column for graph
+    if "graph_column" not in st.session_state:
+        st.session_state.graph_column = config.groupby_column_names[0]
+
+    if "status" not in st.session_state:
+        st.session_state.status = st.session_state.dfData["status"].unique()
+
+    if "fuel_origin" not in st.session_state:
+        st.session_state.fuel_origin = st.session_state.dfData["fuel_origin"].unique()
+
+    if "fuel_type" not in st.session_state:
+        st.session_state.fuel_type = st.session_state.dfData["fuel_type"].unique()
+
+    if "generator_type" not in st.session_state:
+        st.session_state.generator_type = st.session_state.dfData[
+            "generator_type"
+        ].unique()
+
+    if "fuel_type_name" not in st.session_state:
+        st.session_state.fuel_type_name = st.session_state.dfData[
+            "fuel_type_name"
+        ].unique()
+
+    if "states" not in st.session_state:
+        st.session_state.states = st.session_state.dfData["states"].unique()
+
+    if "map_category" not in st.session_state:
+        st.session_state.map_category = ["fuel_origin", "generator_type"]
+
+
+# define function for sidebar navigation across pages
+def render_sidebar() -> None:
+    """Render the sidebar with navigations across pages, must be the first add to a sidebar"""
+    # configure the sidebar
+    with st.sidebar:
+        st.write("Navigation pages:")
+        # pages
+        st.page_link("main_page.py", label="Home")
+        st.page_link("pages/1_electric_matrix.py", label="Electric Matrix")
+        st.page_link("pages/2_hist_evol.py", label="Historical Evolution")
+        st.page_link("pages/3_geo_distr.py", label="Geographic Distribution")
+
+    st.sidebar.divider()
