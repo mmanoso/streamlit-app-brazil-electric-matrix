@@ -10,11 +10,6 @@ import aux_func as aux  # auxiliary functions for manage data
 import config  # import file paths and constants
 
 
-# # callbackfunction for sidebar filters
-# def update_filters_sidebar(filter_name, selected_options):
-#     """Ensures the inmediate writing of the filter to avoid having to click 2 times"""
-#     st.session_state.filters[filter_name] = selected_options
-# callback to reset filters and apply changes to dataframe
 def reset_filters():
     if "filters" in st.session_state:
         st.session_state.filters = {
@@ -122,33 +117,6 @@ def render_sidebar() -> None:
     #             reset_filters()
 
 
-# def apply_filters() -> None:
-#     """Apply selected filters to the dataframe"""
-#     try:
-#         st.session_state.df_filtered = aux.apply_filters_to_df(
-#             st.session_state.dfData, **st.session_state.filters
-#         )
-#     except Exception as e:
-#         st.error(f"Error applying filters: {str(e)}")
-
-
-# # define function for button of reset filter in sidebar
-# def reset_filters() -> None:
-#     """Reset all selected filters for the dataframe"""
-#     try:
-#         st.session_state.filters = {
-#             "status": [],
-#             "fuel_origin": [],
-#             "fuel_type": [],
-#             "fuel_type_name": [],
-#             "generator_type": [],
-#             "states": [],
-#         }
-#         apply_filters()
-#     except Exception as e:
-#         st.error(f"Error reseting filters: {str(e)}")
-
-
 # function for render the main content of the page
 def render_main_content() -> None:
     """Render the main content of the page"""
@@ -223,6 +191,8 @@ def main() -> None:
     initialize_session_state_data()
 
     initialize_session_state_variables()
+
+    # create dynamic filters for sidebar
     dynamic_filters = stdf.DynamicFilters(
         st.session_state.dfData,
         filters=config.dynamic_filter_column_names,
@@ -240,13 +210,16 @@ def main() -> None:
 
     st.sidebar.divider()
 
+    # display dynamic filters in sidebar
     dynamic_filters.display_filters("sidebar")
+
+    # create reset filter button
     with st.sidebar:
         if st.button("Reset Filters"):
             reinitialize_session_state_filters()
             st.rerun()
-    # dynamic_filters.display_df()
-    # st.dataframe(dynamic_filters.display_df())
+
+    # assign filtered df
     st.session_state.df_filtered = dynamic_filters.filter_df()
     render_main_content()
 
