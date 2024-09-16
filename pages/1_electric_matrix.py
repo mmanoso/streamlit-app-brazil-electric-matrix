@@ -23,16 +23,16 @@ def reset_filters():
 
 
 # initialize session state variables
-@st.cache_data
-def initialize_session_state_data() -> None:
-    """Initialize session state variables"""
-    # data
-    if "dfData" not in st.session_state:
-        try:
-            st.session_state.dfData = pd.read_pickle(config.csv_file_path)
-        except Exception as e:
-            st.error(f"Error loading data: {str(e)}")
-            st.stop()
+# @st.cache_data
+# def initialize_session_state_data() -> None:
+#     """Initialize session state variables"""
+#     # data
+#     if "dfData" not in st.session_state:
+#         try:
+#             st.session_state.dfData = pd.read_pickle(config.csv_file_path)
+#         except Exception as e:
+#             st.error(f"Error loading data: {str(e)}")
+#             st.stop()
 
 
 def reinitialize_session_state_filters() -> None:
@@ -188,7 +188,7 @@ def main() -> None:
         initial_sidebar_state="expanded",
     )
 
-    initialize_session_state_data()
+    aux.initialize_session_state_data()
 
     initialize_session_state_variables()
 

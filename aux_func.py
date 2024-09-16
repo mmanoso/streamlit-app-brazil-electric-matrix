@@ -2,7 +2,8 @@ import numpy as np
 import pandas as pd
 from typing import Dict, List, Any, Optional, Tuple, Union
 import streamlit as st
-
+import config
+import geopandas as gpd
 
 # class DynamicFilters:
 #     """
@@ -528,3 +529,30 @@ def ensure_last_selection(
     if new_selection:
         return new_selection, new_selection
     return last_valid_selection, last_valid_selection
+
+
+# initialize dataframe with original data
+@st.cache_data
+def initialize_session_state_data() -> None:
+    """Initialize session state orignal dataframe"""
+    # data
+    if "dfData" not in st.session_state:
+        try:
+            st.session_state.dfData = pd.read_pickle(config.csv_file_path)
+        except Exception as e:
+            st.error(f"Error loading data: {str(e)}")
+            st.stop()
+
+
+# initialize geodataframe with original data
+@st.cache_data
+def initialize_session_state_geodata() -> None:
+    """Initialize session state geodataframe"""
+    if "dfGeoData" not in st.session_state:
+        try:
+            st.session_state.dfGeoData = dfGeoData = gpd.read_file(
+                config.geojson_file_path_state
+            )
+        except Exception as e:
+            st.error(f"Error loading geodataframe: {str(e)}")
+            st.stop()
