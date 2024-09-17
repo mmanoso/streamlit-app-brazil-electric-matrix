@@ -7,6 +7,19 @@ import visualization_func as vf
 import aux_func as aux
 
 
+# function to ensure loading the data
+def ensure_data_loaded():
+    if not st.session_state.get("dfData_loaded", False):
+        aux.initialize_session_state_data()
+    return st.session_state.dfData
+
+
+def ensure_geedata_loaded():
+    if not st.session_state.get("dfGeoData_loaded", False):
+        aux.initialize_session_state_geodata()
+    return st.session_state.dfGeoData
+
+
 # define function for kpi of electric power
 def render_kpi_electric_power() -> None:
     """Create KPI for Installed, Porjected and In construction electric power"""
@@ -55,8 +68,10 @@ def main() -> None:
     )
 
     # initialize data of original dataframe and geodataframe
-    aux.initialize_session_state_data()
-    aux.initialize_session_state_geodata()
+    # aux.initialize_session_state_data()
+    # aux.initialize_session_state_geodata()
+    ensure_data_loaded()
+    ensure_geedata_loaded()
     aux.initialize_session_state_variables()
 
     # render sidebar with pages naviation

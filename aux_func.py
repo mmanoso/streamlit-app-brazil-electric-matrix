@@ -533,35 +533,59 @@ def ensure_last_selection(
 
 # initialize dataframe with original data
 @st.cache_data
+def load_data() -> None:
+    try:
+        return pd.read_pickle(config.csv_file_path)
+    except Exception as e:
+        st.eror(f"Error loading data: {str(e)}")
+        return None
+
+
+@st.cache_data
+def load_geodata() -> None:
+    try:
+        return gpd.read_file(config.geojson_file_path_state)
+    except Exception as e:
+        st.error(f"Error loading geodata: {str(e)}")
+        return None
+
+
 def initialize_session_state_data() -> None:
     """Initialize session state orignal dataframe"""
     # data
-    if "dfData" not in st.session_state:
-        try:
-            st.session_state.dfData = pd.read_pickle(config.csv_file_path)
-        except Exception as e:
-            st.error(f"Error loading data: {str(e)}")
+    if "dfData_loaded" not in st.session_state:
+        st.session_state.dfData_loaded = False
+
+    if not st.session_state.dfData_loaded:
+        df = load_data()
+        if df is not None:
+            st.session_state.dfData = df
+            st.session_state.dfData_loaded = True
+        else:
+            st.error("Failed to load data. Please refresh the page.")
             st.stop()
 
 
 # initialize geodataframe with original data
-@st.cache_data
 def initialize_session_state_geodata() -> None:
     """Initialize session state geodataframe"""
-    if "dfGeoData" not in st.session_state:
-        try:
-            st.session_state.dfGeoData = dfGeoData = gpd.read_file(
-                config.geojson_file_path_state
-            )
-        except Exception as e:
-            st.error(f"Error loading geodataframe: {str(e)}")
+    if "dfGeoData_loaded" not in st.session_state:
+        st.session_state.dfGeoData_loaded = False
+
+    if not st.session_state.dfGeoData_loaded:
+        dfgeo = load_geodata()
+        if dfgeo is not None:
+            st.session_state.dfGeoData = dfgeo
+            st.session_state.dfGeoData_loaded = True
+        else:
+            st.error("Failed to load geodata. Please refresh the page.")
             st.stop()
 
 
 # Initialize variables in session state obtained from dfData
 def initialize_session_state_variables() -> None:
     # filters
-    if "filters" not in st.session_state:
+    if "filters" not in st.session_state or st.session_state.filters is None:
         st.session_state.filters = {
             "status": [],
             "fuel_origin": [],
@@ -571,8 +595,8 @@ def initialize_session_state_variables() -> None:
             "states": [],
         }
     # filtered dataframe
-    if "df_filtered" not in st.session_state:
-        st.session_state.df_filtered = st.session_state.dfData
+    # if "df_filtered" not in st.session_state or st.session_state.df_filtered is None:
+    #     st.session_state.df_filtered = st.session_state.dfData
 
     # column names selection
     if "groupby_columns" not in st.session_state:
@@ -582,29 +606,35 @@ def initialize_session_state_variables() -> None:
     if "graph_column" not in st.session_state:
         st.session_state.graph_column = config.groupby_column_names[0]
 
-    if "status" not in st.session_state:
+    if "status" not in st.session_state or st.session_state.status is None:
         st.session_state.status = st.session_state.dfData["status"].unique()
 
-    if "fuel_origin" not in st.session_state:
+    if "fuel_origin" not in st.session_state or st.session_state.fuel_origin is None:
         st.session_state.fuel_origin = st.session_state.dfData["fuel_origin"].unique()
 
-    if "fuel_type" not in st.session_state:
+    if "fuel_type" not in st.session_state or st.session_state.fuel_type is None:
         st.session_state.fuel_type = st.session_state.dfData["fuel_type"].unique()
 
-    if "generator_type" not in st.session_state:
+    if (
+        "generator_type" not in st.session_state
+        or st.session_state.generator_type is None
+    ):
         st.session_state.generator_type = st.session_state.dfData[
             "generator_type"
         ].unique()
 
-    if "fuel_type_name" not in st.session_state:
+    if (
+        "fuel_type_name" not in st.session_state
+        or st.session_state.fuel_type_name is None
+    ):
         st.session_state.fuel_type_name = st.session_state.dfData[
             "fuel_type_name"
         ].unique()
 
-    if "states" not in st.session_state:
+    if "states" not in st.session_state or st.session_state.states is None:
         st.session_state.states = st.session_state.dfData["states"].unique()
 
-    if "map_category" not in st.session_state:
+    if "map_category" not in st.session_state or st.session_state.map_category is None:
         st.session_state.map_category = ["fuel_origin", "generator_type"]
 
 
